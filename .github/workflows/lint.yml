@@ -12,6 +12,11 @@ on:
 jobs:
   docker-lint:
     runs-on: ubuntu-latest
+    
+    permissions:
+      contents: read
+      security-events: write
+      
     steps:
       - uses: actions/checkout@v3
       
@@ -31,14 +36,14 @@ jobs:
           
       - name: Check shell scripts
         run: |
-          if [ -f "*.sh" ]; then
+          if ls *.sh 1> /dev/null 2>&1; then
             shellcheck *.sh
           else
             echo "No shell scripts to check"
           fi
       
-      - name: Upload SARIF files
-        uses: github/codeql-action/upload-sarif@v2
+      - name: Upload SARIF file
+        uses: github/codeql-action/upload-sarif@v3
         if: always()
         with:
           sarif_file: docker-compose-lint.sarif
