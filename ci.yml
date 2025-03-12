@@ -18,13 +18,20 @@ jobs:
       - name: Install Docker Compose
         run: |
           sudo apt-get update
-          sudo apt-get install -y docker-compose
+          sudo apt-get install -y docker-compose-plugin yamllint
+      - name: Lint docker-compose.yml with yamllint
+        run: yamllint -c .yamllint.yml docker-compose.yml
       - name: Validate docker-compose.yml
-        run: docker-compose config
+        run: docker compose config
+      - name: Lint Dockerfile with Hadolint
+        uses: hadolint/hadolint-action@v3.1.0
+        with:
+          dockerfile: mcp-server/Dockerfile
+          failure-threshold: error
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v2
       - name: Build images
-        run: docker-compose build --no-cache
+        run: docker compose build --no-cache
       # ...existing code...
 
   test:
@@ -36,21 +43,21 @@ jobs:
       - name: Install Docker Compose
         run: |
           sudo apt-get update
-          sudo apt-get install -y docker-compose
+          sudo apt-get install -y docker-compose-plugin
       - name: Start containers
         run: |
-          docker-compose up -d
+          docker compose up -d
           sleep 30  # Allow containers to fully initialize
       - name: Check container status
-        run: docker-compose ps
+        run: docker compose ps
       - name: Check Nextcloud availability
         run: |
-          curl -I --fail --max-time 10 http://localhost:8080 || (docker-compose logs && exit 1)
+          curl -I --fail --max-time 10 http://localhost:8080 || (docker compose logs && exit 1)
       - name: Generate self-signed certificate for testing
         run: |
           openssl req -x509 -nodes -days 365 -newkey rsa:2048 \
           -keyout ssl.key -out ssl.crt -subj "/CN=localhost"
       - name: Cleanup
         if: always()
-        run: docker-compose down -v
+        run: docker compose down -v
       # ...existing code...

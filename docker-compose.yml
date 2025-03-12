@@ -1,3 +1,4 @@
+---
 version: '3.9'
 
 services:
@@ -46,20 +47,17 @@ services:
     env_file:
       - ./mcp-server/.env
     depends_on:
-      - nextcloud
-    networks:
       - nextcloud_network
     volumes:
       - ./mcp-server:/app
-      - /app/node_modules
+      - mcp_node_modules:/app/node_modules
 
 volumes:
   nextcloud:
-    external: true
     name: nextcloud_data
   db:
-    external: true
     name: db_data
+  mcp_node_modules:
 
 networks:
   nextcloud_network:
