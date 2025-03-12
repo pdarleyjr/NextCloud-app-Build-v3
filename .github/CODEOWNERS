@@ -1,0 +1,21 @@
+# Nextcloud Docker Configuration Ownership
+
+# Default owners for everything in the repo
+* @pdarleyjr
+
+# Docker configuration files
+docker-compose.yml @pdarleyjr
+.devcontainer/ @pdarleyjr
+
+# GitHub workflows and templates
+.github/ @pdarleyjr
+
+# Documentation
+*.md @pdarleyjr
+
+# Shell scripts
+*.sh @pdarleyjr
+
+# SSL certificates (if committed)
+*.crt @pdarleyjr
+*.key @pdarleyjr

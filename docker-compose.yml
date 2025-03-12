@@ -1,0 +1,66 @@
+version: '3.9'
+
+services:
+  nextcloud:
+    image: nextcloud:apache
+    container_name: nextcloud_app
+    restart: always
+    ports:
+      - 8080:80
+      - 8443:443
+    volumes:
+      - nextcloud:/var/www/html
+      - ./ssl.crt:/etc/ssl/certs/ssl.crt
+      - ./ssl.key:/etc/ssl/private/ssl.key
+    environment:
+      - NEXTCLOUD_ADMIN_USER=admin
+      - NEXTCLOUD_ADMIN_PASSWORD=password
+      - NEXTCLOUD_TRUSTED_DOMAINS=localhost
+      - MCP_SERVER_URL=http://mcp_server:9090
+    depends_on:
+      - db
+    networks:
+      - nextcloud_network
+
+  db:
+    image: mariadb:10.11
+    container_name: nextcloud_db
+    restart: always
+    command: --transaction-isolation=READ-COMMITTED
+    environment:
+      - MYSQL_ROOT_PASSWORD=secretpassword
+      - MYSQL_DATABASE=nextcloud
+      - MYSQL_USER=nextcloud
+      - MYSQL_PASSWORD=nextcloudpassword
+    volumes:
+      - db:/var/lib/mysql
+    networks:
+      - nextcloud_network
+
+  mcp_server:
+    build: ./mcp-server
+    container_name: mcp_server
+    restart: always
+    ports:
+      - 9090:9090
+    env_file:
+      - ./mcp-server/.env
+    depends_on:
+      - nextcloud
+    networks:
+      - nextcloud_network
+    volumes:
+      - ./mcp-server:/app
+      - /app/node_modules
+
+volumes:
+  nextcloud:
+    external: true
+    name: nextcloud_data
+  db:
+    external: true
+    name: db_data
+
+networks:
+  nextcloud_network:
+    driver: bridge

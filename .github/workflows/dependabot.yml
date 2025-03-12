@@ -1,0 +1,42 @@
+name: Docker Image Updates
+
+on:
+  schedule:
+    - cron: '0 0 * * 1'  # Run every Monday at midnight
+  workflow_dispatch:  # Allow manual triggers
+
+jobs:
+  check-updates:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Check for Nextcloud image updates
+      run: |
+        LATEST_VERSION=$(curl -s https://hub.docker.com/v2/repositories/library/nextcloud/tags/?page_size=25 | jq -r '.results[] | select(.name | startswith("apache")) | .name' | sort -V | tail -n 1)
+        CURRENT_VERSION=$(grep -oP 'nextcloud:\K[^\s]+' docker-compose.yml)
+        echo "Latest Nextcloud version: $LATEST_VERSION"
+        echo "Current version: $CURRENT_VERSION"
+        if [ "$LATEST_VERSION" != "apache" ] && [ "$LATEST_VERSION" != "$CURRENT_VERSION" ]; then
+          echo "Update available: $CURRENT_VERSION -> $LATEST_VERSION"
+        else
+          echo "Already using the latest version"
+        fi
+    
+    - name: Check for MariaDB image updates
+      run: |
+        LATEST_VERSION=$(curl -s https://hub.docker.com/v2/repositories/library/mariadb/tags/?page_size=25 | jq -r '.results[] | select(.name | match("^[0-9]+\\.[0-9]+$")) | .name' | sort -V | tail -n 1)
+        CURRENT_VERSION=$(grep -oP 'mariadb:\K[^\s]+' docker-compose.yml)
+        echo "Latest MariaDB version: $LATEST_VERSION"
+        echo "Current version: $CURRENT_VERSION"
+        if [ "$LATEST_VERSION" != "$CURRENT_VERSION" ]; then
+          echo "Update available: $CURRENT_VERSION -> $LATEST_VERSION"
+        else
+          echo "Already using the latest version"
+        fi
+    
+    - name: Recommend updates
+      run: |
+        echo "To update Docker images, modify the version tags in docker-compose.yml"
+        echo "Then run: docker compose down && docker compose up -d"

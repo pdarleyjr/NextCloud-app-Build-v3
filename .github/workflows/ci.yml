@@ -1,0 +1,52 @@
+name: Nextcloud Docker CI
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Validate docker-compose.yml
+        run: docker-compose config
+      
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+      
+      - name: Build images
+        run: docker-compose build --no-cache
+
+  test:
+    needs: validate
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Start containers
+        run: |
+          docker-compose up -d
+          sleep 30  # Allow containers to fully initialize
+      
+      - name: Check container status
+        run: docker-compose ps
+      
+      - name: Check Nextcloud availability
+        run: |
+          curl -I --fail --max-time 10 http://localhost:8080 || (docker-compose logs && exit 1)
+      
+      - name: Generate self-signed certificate for testing
+        run: |
+          openssl req -x509 -nodes -days 365 -newkey rsa:2048 \
+          -keyout ssl.key -out ssl.crt -subj "/CN=localhost"
+      
+      - name: Cleanup
+        if: always()
+        run: docker-compose down -v

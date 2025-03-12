@@ -1,0 +1,46 @@
+{
+  "name": "Nextcloud Dev Environment",
+  "image": "mcr.microsoft.com/devcontainers/base:ubuntu",
+  "features": {
+    "docker-in-docker": "latest",
+    "ghcr.io/devcontainers/features/node:1": {
+      "version": "18"
+    },
+    "ghcr.io/devcontainers/features/git:1": {}
+  },
+  "forwardPorts": [8080, 8443, 9090],
+  "portsAttributes": {
+    "8080": {
+      "label": "Nextcloud HTTP",
+      "onAutoForward": "notify"
+    },
+    "8443": {
+      "label": "Nextcloud HTTPS",
+      "onAutoForward": "notify"
+    },
+    "9090": {
+      "label": "MCP Server",
+      "onAutoForward": "notify"
+    }
+  },
+  "postCreateCommand": "echo 'Welcome to the Nextcloud Development Environment! Run ./start-nextcloud.sh to begin.'",
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "ms-azuretools.vscode-docker",
+        "redhat.vscode-yaml",
+        "timonwong.shellcheck",
+        "dbaeumer.vscode-eslint",
+        "github.vscode-github-actions"
+      ],
+      "settings": {
+        "terminal.integrated.defaultProfile.linux": "bash",
+        "files.associations": {
+          "docker-compose.yml": "dockercompose",
+          "*.sh": "shellscript"
+        }
+      }
+    }
+  },
+  "remoteUser": "vscode"
+}
